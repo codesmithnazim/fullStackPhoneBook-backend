@@ -192,6 +192,7 @@ app.patch("/api/persons/:id", (req, res) => {
   // persons.push(newPerson);
   PhoneBook.findByIdAndUpdate(id,{phone: newPhoneNumber} ,{returnDocument: 'after'}).then(mongoRes=>{
     if(!mongoRes)res.status(404).send(`mongoResponse ${mongoRes}`)
+      res.status(200).send(mongoRes)
   })
   .catch(error=>{
     console.trace("error from the monogdb while updating the number", error)
