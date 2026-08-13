@@ -1,0 +1,30 @@
+GET http://localhost:3001/info
+
+
+### 
+GET  http://localhost:3001/api/persons/(*!*537b5a03-e1a2-45fb-8c98-1e1b6ba671e8
+
+
+###
+DELETE  http://localhost:3001/api/persons/1
+
+
+###
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "name": "njk",
+  "phone": "22333"
+}
+
+
+###
+DELETE http://localhost:3001/api/persons/4fe83264-6ae1-4172-ae1d-1d4cfa24a633
+
+
+###
+PATCH http://localhost:3001/api/persons/a715bb96-6db-4458-85c5-709f85678a99
+Content-Type: application/json
+
+{"newNumber":"0370-5138055"}
