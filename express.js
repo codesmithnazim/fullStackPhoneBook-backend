@@ -25,93 +25,33 @@ app.use((req, res, next) => {
   next();
 });
 
-// let persons = [
-//   {
-//     name: "javeed ali",
-//     number: "+92131",
-//     id: "0",
-//   },
-//   {
-//     name: "jawasd",
-//     number: "321312",
-//     id: "1",
-//   },
-//   {
-//     name: "ali zaman",
-//     number: "13231231",
-//     id: "2",
-//   },
-//   {
-//     name: "Wajid Ullah",
-//     number: "+92 1231231",
-//     id: "3",
-//   },
-//   {
-//     name: "Faizan",
-//     number: "=93231",
-//     id: "4",
-//   },
-//   {
-//     name: "Zaar Wali Khan",
-//     number: "+92 1231231213",
-//     id: "5",
-//   },
-//   {
-//     name: "Farhad Khan",
-//     number: "+92 3131231",
-//     id: "6",
-//   },
-//   {
-//     name: "Safwan Khan",
-//     number: "+92131231",
-//     id: "7",
-//   },
-//   {
-//     name: "",
-//     number: "",
-//     id: "8",
-//   },
-//   {
-//     name: "Kamran",
-//     number: "+92 31231",
-//     id: "9",
-//   },
-//   {
-//     name: "jjklajdalksjda",
-//     number: "fsdfsd",
-//     id: "10",
-//   },
-//   {
-//     name: "jisdjdklasj",
-//     number: "uiweoufsd",
-//     id: "12",
-//   },
-//   {
-//     name: "j.ksdahkjdha",
-//     number: "hjkfsdhfjsdfs",
-//     id: "13",
-//   },
-//   {
-//     name: "Javaid electrician",
-//     number: "+9231321",
-//     id: "14",
-//   },
-//   {
-//     name: "jklj",
-//     number: "ksajda",
-//     id: "15",
-//   },
-//   {
-//     name: "kjcxzjz",
-//     number: "jklj",
-//     id: "16",
-//   },
-//   {
-//     name: "jkldkja",
-//     number: "jdkassda",
-//     id: "17",
-//   },
-// ];
+const errorHandler = (error, request, response, next) => {
+  console.error(error.name, '-', error.message)
+
+  if (error.name === 'CastError') { //Bad object id format
+    return response.status(400).json({ error: 'malformatted id' })
+  }
+
+  if (error.name === 'ValidationError') { // check the validity of object you are sending/schema validation failed(error)
+    return response.status(400).json({ error: error.message })
+  }
+    if (error.name === 'MongoServerError' && error.code === 11000) {//Only for checking the duplicates keys, with respect to unique attributes of the schema.
+    return response.status(400).json({ error: 'expected value to be unique' })
+  }
+   
+  //  Frontend expect some response from this error catcher
+  // if (error.name === 'MongoServerError' && error.code === 11000) { // modified version of the above
+  //     console.log("error from the monogoDB while saving new note ",typeof error, error);
+  //   return response.status(400).send({ message: error.keyValue });
+  // }
+  
+
+  // return response.status(500).json({ error: 'something went wrong' })
+
+  // if you want to handle the error to the next errorHandler middleware (custon or exprees built in middleware) then use next(error)
+
+  return next(error)
+}
 
 app
   .get("/", (req, res) => {
@@ -119,56 +59,28 @@ app
       "Welcome to the full stack notes,I'm Express server how I can serve you. ",
     );
   })
-  .get("/api/persons", (req, res) => {
-    PhoneBook.find().then((mongoRes) => res.send(mongoRes));
+  .get("/api/persons", (req, res,next) => {
+    PhoneBook.find().then((mongoRes) => res.send(mongoRes)).catch(error=> next(error))
   })
-  .get("/api/persons/:id", (req, res) => {
+  .get("/api/persons/:id", (req, res,next) => {
     // res.send(PhoneBook.findById ((person) => person._id == req.params._id));
     PhoneBook.findById(req.params.id).then(mongoRes=>res.status(200).send(mongoRes))
-    .catch((error)=>{console.log(error); res.status(400).json({error:error})})
+    // .catch((error)=>{console.log(error); res.status(400).json({error:error})})
+    .catch(error=> next(error))
   })
-  .get("/info", (req, res) => {
-    console.log(req.requestTime);
-    res.send(
-      `<div>PhoneBook has information for ${persons.length} people</div><div>${req.requestTime}</div>`,
-    );
+  .get("/api/info", (req, res,next) => {
+    // console.log(req.requestTime);
+    PhoneBook.find().then(mongoRes=>{
+     if (!mongoRes) return res.status(404).end()
+      res.status(200).send( `<div>PhoneBook has information for ${mongoRes.length} people</div><div>${req.requestTime}</div>`,)
+    }).catch(error=> next(error))
   })
-  .delete("/api/persons/:id", (req, res) => {
+  .delete("/api/persons/:id", (req, res,next) => {
     PhoneBook.findByIdAndDelete(req.params.id).then(mongoRes=>res.send(mongoRes))
-    .catch(err=>console.trace(err))
+    .catch(error=> next(error))
     // res.send(persons);
   })
-  .post("/api/persons", async (req, res) => {
-    // console.log(req.body);
-    // let newPerson = req.body;
-    // if (Array.isArray(newPerson)) {
-    //   res.send({ error: "arrow of users can not be added " });
-    //   return;
-    // }
-    // if (!newPerson.name || !newPerson.number) {
-    //   res.status(400).send({ error: "user name or number is missing" });
-    //   return;
-    // }
-    // if (
-    //   // It is not working becuaese when match occur when go to post through window.confirm()
-    //   persons.find(
-    //     (each) =>
-    //       each.name == newPerson.name || each.number == newPerson.number,
-    //   )
-    // ) {
-    //   console.log("The number or name is duplicated loc = 148");
-    //   res.status(400).send({
-    //     error: `User with ${newPerson.name} name or ${newPerson.number} number already exists`,
-    //   });
-    //   return;
-    // }
-
-    // let maxId = Math.max(...persons.map((person) => Number(person.id)));
-    // newPerson.id = String(maxId + 1);
-    // persons.push(newPerson);
-    // res.send(persons);
-
-    // let's use some more efficient technqiues
+  .post("/api/persons", async (req, res,next) => {
     let { name, phone } = req.body;
     // if (!name || !phone) { //Handled by the frontend successfully
     //   res.status(400).send({ message: "Name or Number is missing" });
@@ -179,24 +91,28 @@ app
       let savedNumber = await PhoneBook.create(req.body);
       res.send(savedNumber);
     } catch (error) {
-      console.trace("error from the monogoDB while saving new note ", error);
-      res.status(404).send({ message: error.keyValue });
+      // console.log("error from the monogoDB while saving new note ",typeof error, error);
+      // res.status(400).send({ message: error.keyValue });
+      next(error)
     }
   });
 
 //  Put or update API handler
-app.patch("/api/persons/:id", (req, res) => {
+app.patch("/api/persons/:id", (req, res,next) => {
   let {id}= req.params
   console.log("The new phonenumber we obtaind from the frontend and its person id ", req.body.newNumber, id);
   let newPhoneNumber = req.body.newNumber
-  // persons.push(newPerson);
-  PhoneBook.findByIdAndUpdate(id,{phone: newPhoneNumber} ,{returnDocument: 'after'}).then(mongoRes=>{
-    if(!mongoRes)res.status(404).send(`mongoResponse ${mongoRes}`)
+  PhoneBook.findByIdAndUpdate(id,{phone: newPhoneNumber} ,{returnDocument: 'after', runValidators:true, context:'query'}).then(mongoRes=>{
+    if(!mongoRes){
+       res.status(404).send(`mongoResponse ${mongoRes}`)
+       return;
+    }
       res.status(200).send(mongoRes)
   })
   .catch(error=>{
     console.trace("error from the monogdb while updating the number", error)
-    res.status(404).json({error})
+    // res.status(404).json({error})
+    next(error)
   })
 });
 
@@ -207,3 +123,5 @@ app.listen(PORT, () => {
 app.use((req, res) => {
   res.send({ error: "route not defined" });
 });
+
+app.use(errorHandler)
