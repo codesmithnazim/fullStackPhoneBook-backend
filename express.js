@@ -36,7 +36,7 @@ const errorHandler = (error, request, response, next) => {
     return response.status(400).json({ error: error.message })
   }
     if (error.name === 'MongoServerError' && error.code === 11000) {//Only for checking the duplicates keys, with respect to unique attributes of the schema.
-    return response.status(400).json({ error: 'expected value to be unique' })
+    return response.status(400).json({ error: 'expected values to be unique' })
   }
    
   //  Frontend expect some response from this error catcher
@@ -104,7 +104,7 @@ app.patch("/api/persons/:id", (req, res,next) => {
   let newPhoneNumber = req.body.newNumber
   PhoneBook.findByIdAndUpdate(id,{phone: newPhoneNumber} ,{returnDocument: 'after', runValidators:true, context:'query'}).then(mongoRes=>{
     if(!mongoRes){
-       res.status(404).send(`mongoResponse ${mongoRes}`)
+       res.status(404).json({error:"document not found"})
        return;
     }
       res.status(200).send(mongoRes)

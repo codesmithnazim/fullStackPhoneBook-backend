@@ -14,9 +14,8 @@ POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-  "_id": "da97aa50-4730-4a87-b889-e1da6d0203e2",
-  "name": "Asad Gollona",
-  "phone": "23442"
+  "name": "Asad ",
+  "phone": " "
 }
 
 
