@@ -1,4 +1,4 @@
-import express, { json } from "express";
+import express from "express";
 import morgan from "morgan";
 import "dotenv/config";
 import path from "path";
@@ -71,7 +71,7 @@ app
   .get("/api/info", (req, res,next) => {
     // console.log(req.requestTime);
     PhoneBook.find().then(mongoRes=>{
-     if (!mongoRes) return res.status(404).end()
+     if (!mongoRes) return res.status(404).end() 
       res.status(200).send( `<div>PhoneBook has information for ${mongoRes.length} people</div><div>${req.requestTime}</div>`,)
     }).catch(error=> next(error))
   })
